@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System</title>
+    <link href="main.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Attendance Management System</h1>
+            <div class="wallet-section">
+                <button id="connectWallet" onclick="connectWallet()" class="btn btn-primary">Connect Wallet</button>
+                <button id="disconnectWallet" onclick="disconnectWallet()" class="btn btn-danger" style="display: none;">Disconnect</button>
+                <span id="userRole" class="role-badge"></span>
+            </div>
+        </header>
+
+        <!-- Admin Panel -->
+        <section id="adminPanel" class="panel" style="display: none;">
+            <h2>Admin Panel</h2>
+            
+            <!-- Teachers Section -->
+            <div class="section">
+                <h3>Teachers Management</h3>
+                <div class="form-group">
+                    <input type="text" id="teacherAddress" placeholder="Teacher Address">
+                    <input type="text" id="teacherFirstName" placeholder="First Name">
+                    <input type="text" id="teacherLastName" placeholder="Last Name">
+                    <button onclick="addTeacher()">Add Teacher</button>
+                </div>
+                <div id="teachersList" class="list"></div>
+            </div>
+
+            <!-- Students Section -->
+            <div class="section">
+                <h3>Students Management</h3>
+                <div class="form-group">
+                    <input type="number" id="studentId" placeholder="Student ID">
+                    <input type="number" id="studentAge" placeholder="Age">
+                    <input type="text" id="studentFirstName" placeholder="First Name">
+                    <input type="text" id="studentLastName" placeholder="Last Name">
+                    <button onclick="addStudent()">Add Student</button>
+                </div>
+                <div id="studentsList" class="list"></div>
+            </div>
+
+            <!-- Classes Section -->
+            <div class="section">
+                <h3>Classes Management</h3>
+                <div class="form-group">
+                    <input type="number" id="classId" placeholder="Class ID">
+                    <input type="text" id="className" placeholder="Class Name">
+                    <select id="teacherSelect"></select>
+                    <button onclick="addClass()">Add Class</button>
+                </div>
+                <div class="form-group">
+                    <select id="classSelect"></select>
+                    <select id="studentSelect"></select>
+                    <button onclick="addStudentToClass()">Add Student to Class</button>
+                </div>
+                <div id="classesList" class="list"></div>
+            </div>
+        </section>
+
+        <!-- Teacher Panel -->
+        <section id="teacherPanel" class="panel" style="display: none;">
+            <h2>Teacher Panel</h2>
+            <div class="section">
+                <select id="teacherClassSelect" onchange="loadClassStudents()">
+                    <option value="">Select Class</option>
+                </select>
+                <div id="classStudentsList" class="list"></div>
+            </div>
+        </section>
+
+        <!-- Student Panel -->
+        <section id="studentPanel" class="panel" >
+            <h2>Student Panel</h2>
+            <div class="section">
+                <div class="form-group">
+                    <input type="number" id="studentSearchId" placeholder="Enter Student ID">
+                    <button onclick="searchStudent()">Search</button>
+                </div>
+                <div id="studentAttendanceInfo" class="list"></div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/truffle-contract@4.5.0/dist/truffle-contract.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 

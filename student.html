@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance Management</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Attendance Management using Smart Contract</h1>
+
+      <button id="connectWallet">Kết nối MetaMask</button>
+      <p id="walletAddress">Chưa kết nối</p>
+
+      <fieldset>
+        <legend>Thêm Sinh Viên</legend>
+        <label>Student ID</label>
+        <input id="id" type="text" placeholder="Enter Student ID" />
+
+        <label>Age</label>
+        <input id="age" type="text" placeholder="Enter Age" />
+
+        <label>First Name</label>
+        <input id="fname" type="text" placeholder="Enter First Name" />
+
+        <label>Last Name</label>
+        <input id="lname" type="text" placeholder="Enter Last Name" />
+
+        <button id="addStudent">Thêm Sinh Viên</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Điểm danh</legend>
+        <label>Student ID</label>
+        <input id="idAttendance" type="text" placeholder="Enter Student ID" />
+        <button id="btnIncAttnd">Tăng</button>
+        <button id="btnDecAttnd">Giảm</button>
+        <p id="attendanceResult"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tra cứu Sinh Viên</legend>
+        <label>Student ID</label>
+        <input id="idDetails" type="text" placeholder="Enter Student ID" />
+        <button id="btnDetails">Lấy Thông Tin</button>
+        <p id="stdDetails"></p>
+      </fieldset>
+    </div>
+
+    <script>
+      let web3;
+      let contract;
+      let account;
+
+      const contractAddress = "0x61Ec6f71D79a16915789Eed8bFE43C48430A5Ae4";
+      const abi = [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "studId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newAttendanceValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "AttendanceUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "studId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "fName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "lName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "age",
+          "type": "uint256"
+        }
+      ],
+      "name": "StudentCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_studId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_age",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_fName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_lName",
+          "type": "string"
+        }
+      ],
+      "name": "createStudent",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_studId",
+          "type": "uint256"
+        }
+      ],
+      "name": "incrementAttendance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getStudents",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_studId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getStudent",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "countStudents",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    }
+  ];
+      async function connectMetaMask() {
+        if (window.ethereum) {
+          web3 = new Web3(window.ethereum);
+          try {
+            const accounts = await ethereum.request({
+              method: "eth_requestAccounts",
+            });
+            account = accounts[0];
+            document.getElementById(
+              "walletAddress"
+            ).innerText = `Ví: ${account}`;
+            contract = new web3.eth.Contract(abi, contractAddress);
+          } catch (error) {
+            console.error("Kết nối MetaMask thất bại", error);
+          }
+        } else {
+          alert("Vui lòng cài đặt MetaMask!");
+        }
+      }
+
+      document
+        .getElementById("connectWallet")
+        .addEventListener("click", connectMetaMask);
+
+      document
+        .getElementById("addStudent")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("id").value;
+          const age = document.getElementById("age").value;
+          const fname = document.getElementById("fname").value;
+          const lname = document.getElementById("lname").value;
+
+          try {
+            await contract.methods
+              .createStudent(id, age, fname, lname)
+              .send({ from: account });
+            alert("Thêm sinh viên thành công!");
+          } catch (error) {
+            console.error("Lỗi khi thêm sinh viên:", error);
+          }
+        });
+
+      document
+        .getElementById("btnIncAttnd")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idAttendance").value;
+          try {
+            await contract.methods
+              .incrementAttendance(id)
+              .send({ from: account });
+            alert("Đã tăng điểm danh");
+          } catch (error) {
+            console.error("Lỗi tăng điểm danh:", error);
+          }
+        });
+
+      document
+        .getElementById("btnDecAttnd")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idAttendance").value;
+          try {
+            await contract.methods
+              .decrementAttendance(id)
+              .send({ from: account });
+            alert("Đã giảm điểm danh");
+          } catch (error) {
+            console.error("Lỗi giảm điểm danh:", error);
+          }
+        });
+
+      document
+        .getElementById("btnDetails")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idDetails").value;
+          try {
+            const result = await contract.methods.getStudent(id).call();
+            document.getElementById(
+              "stdDetails"
+            ).innerText = `Tên: ${result[0]} ${result[1]}, Tuổi: ${result[2]}, Điểm danh: ${result[3]}`;
+          } catch (error) {
+            console.error("Lỗi lấy thông tin sinh viên:", error);
+          }
+        });
+    </script>
+  </body>
+</html>
