@@ -55,6 +55,10 @@ h3 {
 
 .section {
     margin-bottom: 30px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
@@ -205,6 +209,13 @@ tr:hover {
 }
 .col {
     flex: 1;
+}
+
+.col-2 {
+    flex: 2;
+}
+.col-3 {
+    flex: 3;
 }
 
 h6{

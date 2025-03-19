@@ -1,7 +1,7 @@
 let web3;
 let contract;
 let userAccount;
-let contractAddress = "0x871C93D705e85FAAc2354161e8a34349A18c03b4"; // Replace with your deployed contract address
+let contractAddress = "0xDD35C538AC8265e524E07349207194712E4e74F1"; // Replace with your deployed contract address
 
 const contractABI = [
   {
@@ -1030,26 +1030,25 @@ async function loadClasses() {
 
     const classes = await contract.methods.getAllClasses().call();
     const list = document.getElementById("classesList");
-    const classSelect = document.getElementById("classSelect"); // Dropdown cho lớp
+    const classSelect = document.getElementById("classSelect"); // Dropdown for classes
 
     if (classes.length === 0) {
       list.innerHTML = "<p>No classes available</p>";
-      classSelect.innerHTML = '<option value="">No classes available</option>'; // Cập nhật dropdown
+      classSelect.innerHTML = '<option value="">No classes available</option>'; // Update dropdown
       return;
     }
 
-    list.innerHTML =`
+    list.innerHTML = `
       <h6>All Classes</h6>
       <div class="row header">
         <div class="col">ID</div>
         <div class="col">Name</div>
         <div class="col">Teacher</div>
-        <div class="col">Students</div>
+        <div class="col col-3">Students</div>
       </div>
-    `
-      // '<h6>All Classes</h6><table class="table"><thead><tr><th>ID</th><th>Name</th><th>Teacher</th><th>Students</th></tr></thead><tbody>';
+    `;
 
-    classSelect.innerHTML = '<option value="">Select a class</option>'; // Khởi tạo dropdown
+    classSelect.innerHTML = '<option value="">Select a class</option>'; // Initialize dropdown
 
     for (const classId of classes) {
       try {
@@ -1070,15 +1069,16 @@ async function loadClasses() {
           teacherName = `Unknown Teacher (${teacherAddress.slice(0, 6)}...)`;
         }
 
-        // Get student details
+        // Get student details and attendance status
         let studentList = "";
         if (studentIds && studentIds.length > 0) {
           for (const studentId of studentIds) {
             try {
               var studentInfo = await contract.methods.getStudent(studentId).call();
-              var fName = studentInfo[0];
-              var lName = studentInfo[1];
-              studentList += `<div>${fName} ${lName}</div>`;
+              var firstName = studentInfo[0];
+              var lastName = studentInfo[1];
+              var attendanceValue = await contract.methods.getStudentAttendance(classId, studentId).call();
+              studentList += `<div>${firstName} ${lastName} - ${attendanceValue > 0 ? "Marked" : "Not Marked"}</div>`;
             } catch (error) {
               console.error(`Error getting student info for ${studentId}:`, error);
               studentList += `<div>Unknown Student (${studentId})</div>`;
@@ -1093,7 +1093,7 @@ async function loadClasses() {
             <div class="col">${classId}</div>
             <div class="col">${name}</div>
             <div class="col">${teacherName}</div>
-            <div class="col">
+            <div class="col col-3">
               <div class="student-list">
                 ${studentList}
               </div>
@@ -1101,7 +1101,7 @@ async function loadClasses() {
           </div>
         `;
 
-        // Thêm vào dropdown
+        // Add to dropdown
         classSelect.innerHTML += `<option value="${classId}">${name}</option>`;
       } catch (error) {
         console.error(`Error loading class ${classId}:`, error);
@@ -1113,7 +1113,6 @@ async function loadClasses() {
         `;
       }
     }
-    list.innerHTML += "</tbody></table>";
   } catch (error) {
     console.error("Error loading classes:", error);
     const list = document.getElementById("classesList");
